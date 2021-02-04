@@ -1,41 +1,51 @@
-# TypeScript Next.js example
+# 【WIP】Next.js + TypeScript 環境でのテスト環境構築手順
 
-This is a really simple project that shows the usage of Next.js with TypeScript.
-
-## Deploy your own
-
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example):
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/next.js/tree/canary/examples/with-typescript&project-name=with-typescript&repository-name=with-typescript)
-
-## How to use it?
-
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init) or [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) to bootstrap the example:
+1. Next.js の example 機能を使って TypeScript が使用できる Next.js アプリを clone
 
 ```bash
-npx create-next-app --example with-typescript with-typescript-app
-# or
-yarn create next-app --example with-typescript with-typescript-app
+$ npx create-next-app --example with-typescript your-project
 ```
 
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
+2. cypress のインストールと初期設定
 
-## Notes
-
-This example shows how to integrate the TypeScript type system into Next.js. Since TypeScript is supported out of the box with Next.js, all we have to do is to install TypeScript.
-
-```
-npm install --save-dev typescript
+```bash
+$ yarn add -D cypress
 ```
 
-To enable TypeScript's features, we install the type declarations for React and Node.
+パッケージがインストールできたら、`package.json`にコマンドを追加しておく。
+`next dev`のデフォルトポートは 3000 なんですが、よく 3000 は他のものが使っているので 3050 で動かすことにします。
 
+```json
+"scripts": {
+  "dev": "next -p 3050",
+  "cypress:open": "cypress open",
+  "cypress:run": "cypress run"
+},
 ```
-npm install --save-dev @types/react @types/react-dom @types/node
+
+```bash
+$ yarn cypress open
 ```
 
-When we run `next dev` the next time, Next.js will start looking for any `.ts` or `.tsx` files in our project and builds it. It even automatically creates a `tsconfig.json` file for our project with the recommended settings.
+を実行すると、諸々 cypress の設定ファイルが生成されるので、`/cypress.json`に、以下の設定を追記しておく。
 
-Next.js has built-in TypeScript declarations, so we'll get autocompletion for Next.js' modules straight away.
+```json
+{
+  "baseUrl": "http://localhost:3050"
+}
+```
 
-A `type-check` script is also added to `package.json`, which runs TypeScript's `tsc` CLI in `noEmit` mode to run type-checking separately. You can then include this, for example, in your `test` scripts.
+また、Cypress を TypeScript で書けるようにするために`/cypress/tsconfig.json`を作成して、以下のように設定し居ておく。
+
+```json
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // be explicit about types included
+    // to avoid clashing with Jest types
+    "types": ["cypress"]
+  },
+  "include": ["../node_modules/cypress", "./*/*.ts"]
+}
+```
